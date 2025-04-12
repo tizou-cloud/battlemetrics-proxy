@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test Proxy BattleMetrics</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      padding: 8px;
+      border-radius: 5px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Test API Proxy BattleMetrics</h1>
+  <button onclick="callAPI()">Tester l’API</button>
+  <pre id="result">En attente…</pre>
+
+  <script>
+    async function callAPI() {
+      const res = await fetch("/api");
+      const data = await res.json();
+      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
