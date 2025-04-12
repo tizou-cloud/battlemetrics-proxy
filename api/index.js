@@ -9,11 +9,14 @@ export default async function handler(req, res) {
       }
     });
 
+    const result = await response.text(); // <-- log brut
+    console.log("BattleMetrics response:", result);
+
     if (!response.ok) {
-      throw new Error("Erreur BattleMetrics");
+      throw new Error(result);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(result);
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: "Erreur serveur", details: err.message });
