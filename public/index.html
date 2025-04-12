@@ -5,13 +5,61 @@
   <title>Recherche BattleMetrics</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
-    input, button { padding: 8px; margin: 5px; border-radius: 5px; border: none; }
-    input { width: 250px; }
-    .player-info { margin-top: 20px; }
-    canvas { max-width: 600px; margin-top: 20px; }
-    .result-item { cursor: pointer; padding: 4px; border-bottom: 1px solid #333; }
-    .result-item:hover { background-color: #222; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background: #161b22;
+      color: white;
+    }
+    input::placeholder {
+      color: #8b949e;
+    }
+    .player-info {
+      margin-top: 20px;
+    }
+    canvas {
+      max-width: 700px;
+      margin-top: 20px;
+    }
+    .result-item {
+      cursor: pointer;
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #21262d;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+    }
+    .result-item:hover {
+      background-color: #30363d;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      margin-right: 10px;
+      background: #58a6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+    }
+    h1 {
+      font-size: 1.8em;
+      color: #58a6ff;
+    }
+    h2 {
+      color: #58a6ff;
+    }
   </style>
 </head>
 <body>
@@ -40,8 +88,11 @@
 
         resBox.innerHTML = `<h2>Résultats :</h2>` + data.data.map(player => `
           <div class="result-item" onclick="loadDetails('${player.id}', '${player.attributes.name}')">
-            🧍 ${player.attributes.name} (ID: ${player.id})<br>
-            🕓 Créé le : ${new Date(player.attributes.createdAt).toLocaleString()}
+            <div class="avatar">${player.attributes.name[0]}</div>
+            <div>
+              🧍 ${player.attributes.name} (ID: ${player.id})<br>
+              🕓 Créé le : ${new Date(player.attributes.createdAt).toLocaleString()}
+            </div>
           </div>`
         ).join('');
       } catch (err) {
@@ -88,18 +139,21 @@
         `;
 
         new Chart(document.getElementById("activityChart"), {
-          type: 'bar',
+          type: 'line',
           data: {
             labels: labels.slice(-10),
             datasets: [{
               label: "Temps de session (min)",
               data: values.slice(-10),
-              backgroundColor: "#4caf50"
+              borderColor: "#58a6ff",
+              backgroundColor: "rgba(88, 166, 255, 0.2)",
+              tension: 0.3,
+              fill: true
             }]
           },
           options: {
             scales: { y: { beginAtZero: true } },
-            plugins: { legend: { display: false } }
+            plugins: { legend: { display: true } }
           }
         });
       } catch (err) {
