@@ -11,7 +11,7 @@
       background: #0d1117;
       color: #c9d1d9;
     }
-    input, button {
+    input, button, select {
       padding: 10px;
       margin: 5px;
       border-radius: 6px;
@@ -63,9 +63,14 @@
   </style>
 </head>
 <body>
-  <h1>🔎 Recherche par ID BattleMetrics</h1>
-  <input id="search" type="text" placeholder="ID BattleMetrics uniquement">
-  <button onclick="searchByID()">Rechercher</button>
+  <h1>🔎 Recherche BattleMetrics</h1>
+  <input id="search" type="text" placeholder="Entrez une valeur...">
+  <select id="searchType">
+    <option value="name">Par nom</option>
+    <option value="steam">Par ID Steam</option>
+    <option value="battlemetrics">Par ID BattleMetrics</option>
+  </select>
+  <button onclick="searchPlayer()">Rechercher</button>
 
   <div class="player-info" id="results"></div>
   <canvas id="activityChart"></canvas>
@@ -73,23 +78,32 @@
   <script>
     const API_BASE = "https://battlemetrics-proxy-omega.vercel.app";
 
-    async function searchByID() {
+    async function searchPlayer() {
       const input = document.getElementById('search').value.trim();
-      if (!input) return alert("Entrez un ID valide");
-
+      const type = document.getElementById('searchType').value;
       const resBox = document.getElementById("results");
-      resBox.innerHTML = `Recherche de l'utilisateur ${input}...`;
+
+      if (!input) return alert("Entrez une valeur valide");
+      resBox.innerHTML = `Recherche en cours...`;
 
       try {
-        const playerRes = await fetch(`${API_BASE}/api/players?id=${encodeURIComponent(input)}`);
-        const playerData = await playerRes.json();
+        let url;
 
-        if (!playerData.data) {
-          resBox.innerHTML = `Aucun joueur trouvé pour cet identifiant.`;
+        if (type === 'battlemetrics') {
+          url = `${API_BASE}/api/players?id=${encodeURIComponent(input)}`;
+        } else {
+          url = `${API_BASE}/api?search=${encodeURIComponent(input)}${type === 'steam' ? '&steam=true' : ''}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.data || data.data.length === 0) {
+          resBox.innerHTML = `Aucun joueur trouvé.`;
           return;
         }
 
-        const player = playerData.data;
+        const player = data.data[0];
         const id = player.id;
         const name = player.attributes.name;
 
