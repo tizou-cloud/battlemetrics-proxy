@@ -90,7 +90,7 @@
         let url;
 
         if (type === 'battlemetrics') {
-          url = `${API_BASE}/api/players?id=${encodeURIComponent(input)}`;
+          url = `${API_BASE}/api?id=${encodeURIComponent(input)}`;
         } else {
           url = `${API_BASE}/api?search=${encodeURIComponent(input)}${type === 'steam' ? '&steam=true' : ''}`;
         }
@@ -99,7 +99,7 @@
         const data = await response.json();
 
         if (!data.data || data.data.length === 0) {
-          resBox.innerHTML = `Aucun joueur trouvé.`;
+          resBox.innerHTML = `Aucun joueur trouvé pour cet identifiant.`;
           return;
         }
 
