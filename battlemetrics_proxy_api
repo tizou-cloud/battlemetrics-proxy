@@ -1,0 +1,36 @@
+// api/index.js (proxy backend Node.js pour Vercel ou Render)
+
+import express from "express";
+import fetch from "node-fetch";
+
+const app = express();
+
+app.get("/player", async (req, res) => {
+  const search = req.query.search;
+  if (!search) return res.status(400).json({ error: "Missing search param" });
+
+  try {
+    const url = `https://api.battlemetrics.com/players?filter[search]=${encodeURIComponent(search)}&filter[game]=rust&page[size]=1`;
+    const response = await fetch(url);
+    const json = await response.json();
+    res.json(json);
+  } catch (err) {
+    res.status(500).json({ error: "Proxy error", details: err.message });
+  }
+});
+
+app.get("/sessions", async (req, res) => {
+  const id = req.query.id;
+  if (!id) return res.status(400).json({ error: "Missing id param" });
+
+  try {
+    const url = `https://api.battlemetrics.com/players/${id}/session-history?filter[game]=rust&page[size]=100`;
+    const response = await fetch(url);
+    const json = await response.json();
+    res.json(json);
+  } catch (err) {
+    res.status(500).json({ error: "Proxy error", details: err.message });
+  }
+});
+
+export default app;
