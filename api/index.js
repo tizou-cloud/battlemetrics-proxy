@@ -1,35 +1,21 @@
 export default async function handler(req, res) {
   const search = req.query.search;
-
-  if (!search) {
-    return res.status(400).json({ error: "Aucun paramètre de recherche fourni." });
-  }
+  const url = `https://api.battlemetrics.com/players?filter[search]=${search}&filter[game]=rust`;
 
   try {
-    const response = await fetch(`https://api.battlemetrics.com/players?filter[search]=${encodeURIComponent(search)}&filter[game]=rust&page[size]=1`);
+    const response = await fetch(url, {
+      headers: {
+        Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImU1YTA0MjIzM2U4ZTI4YTgiLCJpYXQiOjE3NDQwNDYzNjAsIm5iZiI6MTc0NDA0NjM2MCwiaXNzIjoiaHR0cHM6Ly93d3cuYmF0dGxlbWV0cmljcy5jb20iLCJzdWIiOiJ1cm46dXNlcjoxMDE1NDk1In0.UZHq5KbHgXycv2nN2ogSvuUXTwHEU0lBVVNrUlCmkVU"
+      }
+    });
 
     if (!response.ok) {
       throw new Error("Erreur BattleMetrics");
     }
 
     const data = await response.json();
-
-    if (!data.data.length) {
-      return res.status(404).json({ error: "Aucun joueur trouvé." });
-    }
-
-    const player = data.data[0];
-
-    res.status(200).json({
-      id: player.id,
-      name: player.attributes.name,
-      online: player.attributes.online,
-      createdAt: player.attributes.createdAt,
-      updatedAt: player.attributes.updatedAt
-    });
-
-  } catch (error) {
-    console.error("Erreur:", error);
-    res.status(500).json({ error: "Erreur serveur", details: error.message });
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Erreur serveur", details: err.message });
   }
 }
