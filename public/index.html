@@ -63,9 +63,9 @@
   </style>
 </head>
 <body>
-  <h1>🔎 Recherche BattleMetrics</h1>
-  <input id="search" type="text" placeholder="Pseudo ou ID...">
-  <button onclick="searchPlayer()">Rechercher</button>
+  <h1>🔎 Recherche par ID BattleMetrics</h1>
+  <input id="search" type="text" placeholder="ID du joueur...">
+  <button onclick="searchByID()">Rechercher</button>
 
   <div class="player-info" id="results"></div>
   <canvas id="activityChart"></canvas>
@@ -73,37 +73,12 @@
   <script>
     const API_BASE = "https://battlemetrics-proxy-omega.vercel.app";
 
-    async function searchPlayer() {
-      const keyword = document.getElementById('search').value.trim();
-      if (!keyword) return alert("Tape un pseudo ou un ID");
+    async function searchByID() {
+      const id = document.getElementById('search').value.trim();
+      if (!id) return alert("Entrez un ID valide");
 
       const resBox = document.getElementById("results");
-      resBox.innerHTML = "Chargement...";
-
-      try {
-        const response = await fetch(`${API_BASE}/api?search=${encodeURIComponent(keyword)}`);
-        const data = await response.json();
-
-        if (!data.data || !data.data.length) return resBox.innerHTML = "Aucun joueur trouvé.";
-
-        resBox.innerHTML = `<h2>Résultats :</h2>` + data.data.map(player => `
-          <div class="result-item" onclick="loadDetails('${player.id}', '${player.attributes.name}')">
-            <div class="avatar">${player.attributes.name[0]}</div>
-            <div>
-              🧍 ${player.attributes.name} (ID: ${player.id})<br>
-              🕓 Créé le : ${new Date(player.attributes.createdAt).toLocaleString()}
-            </div>
-          </div>`
-        ).join('');
-      } catch (err) {
-        resBox.innerHTML = `Erreur lors de la recherche.`;
-        console.error(err);
-      }
-    }
-
-    async function loadDetails(id, name) {
-      const resBox = document.getElementById("results");
-      resBox.innerHTML = `Chargement des sessions de ${name}...`;
+      resBox.innerHTML = `Chargement des sessions pour l'ID ${id}...`;
 
       try {
         const response = await fetch(`${API_BASE}/api/sessions?id=${id}`);
@@ -111,7 +86,7 @@
 
         const sessions = data.data;
         if (!sessions || !sessions.length) {
-          resBox.innerHTML = `<p>${name} n'a pas de sessions enregistrées.</p>`;
+          resBox.innerHTML = `<p>Aucune session trouvée pour cet ID.</p>`;
           return;
         }
 
@@ -133,7 +108,7 @@
         });
 
         resBox.innerHTML = `
-          <h2>${name}</h2>
+          <h2>Résultats pour l'ID : ${id}</h2>
           <p>⏱ Temps de jeu total : ${Math.round(totalTime)} minutes</p>
           <p>🖥️ Dernier serveur ID : ${lastServer}</p>
         `;
@@ -157,7 +132,7 @@
           }
         });
       } catch (err) {
-        resBox.innerHTML = `Erreur lors du chargement des détails.`;
+        resBox.innerHTML = `Erreur lors de la récupération des données.`;
         console.error(err);
       }
     }
