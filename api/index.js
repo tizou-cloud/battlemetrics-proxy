@@ -1,6 +1,13 @@
 export default async function handler(req, res) {
-  const search = req.query.search;
-  const url = `https://api.battlemetrics.com/players?filter[search]=${search}&filter[game]=rust`;
+  const search = req.query.search || "";
+  const url = `https://api.battlemetrics.com/players?filter[search]=${search}&page[size]=1`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: "Bearer export default async function handler(req, res) {
+  const search = req.query.search || "";
+  const url = `https://api.battlemetrics.com/players?filter[search]=${search}&page[size]=1`;
 
   try {
     const response = await fetch(url, {
@@ -9,15 +16,30 @@ export default async function handler(req, res) {
       }
     });
 
-    const result = await response.text(); // <-- log brut
-    console.log("BattleMetrics response:", result);
+    const json = await response.json();
 
-    if (!response.ok) {
-      throw new Error(result);
-    }
+    // Exemple : tu filtres côté code si besoin
+    const results = json.data.filter(player =>
+      player.attributes?.game === "rust"
+    );
 
-    const data = JSON.parse(result);
-    res.status(200).json(data);
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json({ error: "Erreur serveur", details: err.message });
+  }
+}
+"
+      }
+    });
+
+    const json = await response.json();
+
+    // Exemple : tu filtres côté code si besoin
+    const results = json.data.filter(player =>
+      player.attributes?.game === "rust"
+    );
+
+    res.status(200).json(results);
   } catch (err) {
     res.status(500).json({ error: "Erreur serveur", details: err.message });
   }
