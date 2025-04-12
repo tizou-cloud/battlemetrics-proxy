@@ -64,7 +64,7 @@
 </head>
 <body>
   <h1>🔎 Recherche par ID BattleMetrics</h1>
-  <input id="search" type="text" placeholder="ID Steam ou BattleMetrics...">
+  <input id="search" type="text" placeholder="ID BattleMetrics uniquement">
   <button onclick="searchByID()">Rechercher</button>
 
   <div class="player-info" id="results"></div>
@@ -81,15 +81,15 @@
       resBox.innerHTML = `Recherche de l'utilisateur ${input}...`;
 
       try {
-        const searchRes = await fetch(`${API_BASE}/api?search=${encodeURIComponent(input)}`);
-        const searchData = await searchRes.json();
+        const playerRes = await fetch(`${API_BASE}/api/players?id=${encodeURIComponent(input)}`);
+        const playerData = await playerRes.json();
 
-        if (!searchData.data || !searchData.data.length) {
+        if (!playerData.data) {
           resBox.innerHTML = `Aucun joueur trouvé pour cet identifiant.`;
           return;
         }
 
-        const player = searchData.data[0];
+        const player = playerData.data;
         const id = player.id;
         const name = player.attributes.name;
 
