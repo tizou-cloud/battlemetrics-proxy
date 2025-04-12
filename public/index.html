@@ -1,32 +1,111 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Test Proxy BattleMetrics</title>
+  <meta charset="UTF-8">
+  <title>Recherche BattleMetrics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      background: #121212;
-      color: white;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    input, button {
-      padding: 8px;
-      border-radius: 5px;
-      margin: 10px;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+    input, button { padding: 8px; margin: 5px; border-radius: 5px; border: none; }
+    input { width: 250px; }
+    .player-info { margin-top: 20px; }
+    canvas { max-width: 600px; margin-top: 20px; }
+    .result-item { cursor: pointer; padding: 4px; border-bottom: 1px solid #333; }
+    .result-item:hover { background-color: #222; }
   </style>
 </head>
 <body>
-  <h1>🔍 Test API Proxy BattleMetrics</h1>
-  <button onclick="callAPI()">Tester l’API</button>
-  <pre id="result">En attente…</pre>
+  <h1>🔎 Recherche BattleMetrics</h1>
+  <input id="search" type="text" placeholder="Pseudo ou ID...">
+  <button onclick="searchPlayer()">Rechercher</button>
+
+  <div class="player-info" id="results"></div>
+  <canvas id="activityChart"></canvas>
 
   <script>
-    async function callAPI() {
-      const res = await fetch("/api");
-      const data = await res.json();
-      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+    const API_BASE = "https://battlemetrics-proxy-omega.vercel.app";
+
+    async function searchPlayer() {
+      const keyword = document.getElementById('search').value.trim();
+      if (!keyword) return alert("Tape un pseudo ou un ID");
+
+      const resBox = document.getElementById("results");
+      resBox.innerHTML = "Chargement...";
+
+      try {
+        const response = await fetch(`${API_BASE}/api?search=${encodeURIComponent(keyword)}`);
+        const data = await response.json();
+
+        if (!data.data || !data.data.length) return resBox.innerHTML = "Aucun joueur trouvé.";
+
+        resBox.innerHTML = `<h2>Résultats :</h2>` + data.data.map(player => `
+          <div class="result-item" onclick="loadDetails('${player.id}', '${player.attributes.name}')">
+            🧍 ${player.attributes.name} (ID: ${player.id})<br>
+            🕓 Créé le : ${new Date(player.attributes.createdAt).toLocaleString()}
+          </div>`
+        ).join('');
+      } catch (err) {
+        resBox.innerHTML = `Erreur lors de la recherche.`;
+        console.error(err);
+      }
+    }
+
+    async function loadDetails(id, name) {
+      const resBox = document.getElementById("results");
+      resBox.innerHTML = `Chargement des sessions de ${name}...`;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/sessions?id=${id}`);
+        const data = await response.json();
+
+        const sessions = data.data;
+        if (!sessions || !sessions.length) {
+          resBox.innerHTML = `<p>${name} n'a pas de sessions enregistrées.</p>`;
+          return;
+        }
+
+        let totalTime = 0, lastServer = "?";
+        const labels = [], values = [];
+
+        sessions.forEach(s => {
+          const start = new Date(s.attributes.start);
+          const stop = new Date(s.attributes.stop);
+          const duration = (stop - start) / 1000 / 60;
+
+          if (s.relationships.server?.data?.id) {
+            lastServer = s.relationships.server.data.id;
+          }
+
+          totalTime += duration;
+          labels.push(start.toLocaleDateString() + ' ' + start.toLocaleTimeString());
+          values.push(duration);
+        });
+
+        resBox.innerHTML = `
+          <h2>${name}</h2>
+          <p>⏱ Temps de jeu total : ${Math.round(totalTime)} minutes</p>
+          <p>🖥️ Dernier serveur ID : ${lastServer}</p>
+        `;
+
+        new Chart(document.getElementById("activityChart"), {
+          type: 'bar',
+          data: {
+            labels: labels.slice(-10),
+            datasets: [{
+              label: "Temps de session (min)",
+              data: values.slice(-10),
+              backgroundColor: "#4caf50"
+            }]
+          },
+          options: {
+            scales: { y: { beginAtZero: true } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      } catch (err) {
+        resBox.innerHTML = `Erreur lors du chargement des détails.`;
+        console.error(err);
+      }
     }
   </script>
 </body>
